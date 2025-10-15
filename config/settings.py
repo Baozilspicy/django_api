@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     "rest_framework","django_filters",
     "products",
     "users",
+    "orders",
+    # "orders.apps.OrdersConfig",
 ]
 
 REST_FRAMEWORK = {
