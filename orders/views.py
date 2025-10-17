@@ -9,13 +9,12 @@ from .models import Order
 from .serializers import OrderSerializer
 from products.models import Product
 
-ALLOWED_TRANSITIONS = {
-    "draft": {"pending", "cancelled"},
-    "pending": {"paid", "cancelled"},
-    "paid": {"refunded"},
-    "refunded": {"reopened"},
-    "cancelled": {"reopened"},   
-}
+# ALLOWED_TRANSITIONS = {
+#     "pending": {"paid", "cancelled"},
+#     "paid": {"refunded"},
+#     "refunded": {"pending"},
+#     "cancelled": {"pending"},   
+# }
 
 class IsOwnerOrAdmin(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -78,18 +77,6 @@ class OrderViewSet(viewsets.ModelViewSet):
         self._release_all(o)
         o.status = "refunded"; o.save(update_fields=["status"])
         return Response(self.get_serializer(o).data, status=http_status.HTTP_200_OK)
-
-    @action(detail=True, methods=["post"], permission_classes=[permissions.IsAdminUser])
-    @transaction.atomic
-    def reopen(self, request, pk=None):
-        o = self.get_object()
-        if o.status != "cancelled":
-            return Response({"detail":"Chỉ mở lại đơn đã hủy"}, status=400)
-        err = self._reserve_all(o)
-        if err:
-            return Response({"detail": err}, status=400)
-        o.status = "pending"; o.save(update_fields=["status"])
-        return Response(self.get_serializer(o).data, status=200)
 
     @action(detail=True, methods=["post"], permission_classes=[permissions.IsAdminUser])
     @transaction.atomic
